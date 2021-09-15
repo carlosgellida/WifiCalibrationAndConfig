@@ -1,0 +1,410 @@
+<style> 
+  #c {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: -1;
+  }
+  .diagram {
+    display: inline-block;
+    width:40vw;
+    height: 40vh;
+  }
+
+  .fondoGamepad {
+    display: inline-block;
+    width:70vw;
+    height: 70vh;
+  }
+
+  .left {
+    float: left;
+    margin-right: .25em;
+  }
+  .right {
+    float: right;
+    margin-left: .25em;
+  } */
+  
+  p{
+    margin-top: -1vh;
+  }
+  
+  #workSpace{
+    width: 100vw;
+    height: 100vh;
+    margin-top: 0vh;
+    margin-left: 0vh;
+    /*background-color: cornflowerblue; */
+    display: grid;
+    grid-template-columns: 50vw 50vw;
+  }
+  
+  .gamepad{
+    border-style: solid;
+    border-color: red;
+    width: 45vw;
+    height: 45vh ;
+    color: black; 
+    font-size: 2.5vw ;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-top: 0%; 
+  }
+  
+  .autogiro{
+    border-style: solid;
+    border-color: blue;
+    width: 45vw;
+    height: 45vh ;
+    /*margin-left: 60vw; 
+    margin-top: 0vh ; */
+    color: black; 
+    font-size: 2.5vw ;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-top: 0%; 
+  }
+  </style>
+  
+  <canvas id="c"></canvas>
+  
+  <section id="workSpace">
+  <div class="gamepad"> 
+    <p> Autogiro current orientation </p>
+    <span id="box" class="diagram left"></span>
+  </div>
+  
+  <div class="autogiro"> 
+    <p> Desired orientation of autogiro </p>
+    <span id="desiredauto" class="diagram right"></span>
+  </div>  
+  
+  <div class="autogiro"> 
+    <p> Gamepad buttons position </p>
+    <span id="buttons" class="right fondoGamepad"></span>
+  </div>
+
+  <div class="autogiro"> </div>
+  
+  </section>
+  
+  <script type="module">
+      import * as THREE from 'http://localhost:8080/threejs/resources/threejs/r127/build/three.module.js';
+      //import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r127/build/three.module.js';
+  function main() {
+    const canvas = document.querySelector('#c');
+    const renderer = new THREE.WebGLRenderer({canvas, alpha: true});
+  
+    function makeScene(elem) {
+      const scene = new THREE.Scene();
+  
+      const fov = 45;
+      const aspect = 2;  // the canvas default
+      const near = 0.2;
+      const far = 5;
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+      //var quat_cam = new THREE.Quaternion(0, -0.7071068, 0, 0.7071068 ) ;
+      //var quat_cam2 = new THREE.Quaternion(0, 0, -0.7071068, 0.7071068 ) ;
+      //quat_cam.multiplyQuaternions(quat_cam2, quat_cam); 
+      camera.position.set(0, 0, 2);
+      //camera.quaternion.copy(quat_cam);
+      camera.lookAt(0, 0, 0);
+  
+      {
+        const color = 0xFFFFFF;
+        const intensity = 1;
+        const light = new THREE.DirectionalLight(color, intensity);
+        light.position.set(-1, 2, 4);
+        scene.add(light);
+      }
+  
+      return {scene, camera, elem};
+    }
+  
+    function setupScene1() {
+      // full autogiro scene
+      const sceneInfo = makeScene(document.querySelector('#box'));
+
+      const geometry = new THREE.BoxGeometry(2, 0.1, 0.1);
+      const material = new THREE.MeshPhongMaterial({color: 'black'});
+      const mainbar = new THREE.Mesh(geometry, material);
+      mainbar.position.set(0, 0.05, -0.01)
+
+      const geometry_wing = new THREE.BoxGeometry(0.6, 0.1, 0.6);
+      const material_wing = new THREE.MeshPhongMaterial({color: 'pink'});
+
+      const Wing1 = new THREE.Mesh(geometry_wing, material_wing); 
+      Wing1.position.set(1, 0, 0.3); 
+
+      const Wing2 = new THREE.Mesh(geometry_wing, material_wing); 
+      Wing2.rotateX(120*3.1415/180); 
+      Wing2.position.set(1, -0.26, -0.15); 
+
+      const Wing3 = new THREE.Mesh(geometry_wing, material_wing); 
+      Wing3.rotateX(-120*3.1415/180); 
+      Wing3.position.set(1, 0.26, -0.15); 
+
+      const geometry_srot = new THREE.BoxGeometry(0.8, 0.1, 0.1);
+      const material_srot = new THREE.MeshPhongMaterial({color: 'black'});
+      const soporte_rotor = new THREE.Mesh(geometry_srot, material_srot); 
+      soporte_rotor.rotateY(90*3.1415/180);
+      soporte_rotor.position.set(0, 0.05, -0.4)
+
+      const geometry_blade = new THREE.BoxGeometry(0.8, 0.1, 0.01);
+      const material_blade = new THREE.MeshPhongMaterial({color: 'blue'});
+
+      const blade1 = new THREE.Mesh(geometry_blade, material_blade);
+      blade1.position.set(0.4, 0.05, -0.8); 
+
+      const blade2 = new THREE.Mesh(geometry_blade, material_blade);
+      blade2.position.set(-0.24, -0.30, -0.8); 
+      blade2.rotateZ(-120*3.1415/180);
+
+      const blade3 = new THREE.Mesh(geometry_blade, material_blade);
+      blade3.position.set(-0.24, 0.35, -0.8); 
+      blade3.rotateZ(120*3.1415/180);
+
+      const autogiro = new THREE.Group() ; 
+
+      autogiro.add(mainbar); 
+      autogiro.add(Wing1); 
+      autogiro.add(Wing2); 
+      autogiro.add(Wing3); 
+      autogiro.add(soporte_rotor); 
+      autogiro.add(blade1) ;
+      autogiro.add(blade2) ;
+      autogiro.add(blade3) ;
+
+      sceneInfo.scene.add(autogiro);
+      sceneInfo.autogiro = autogiro;
+
+      return sceneInfo;
+    }
+  
+    function setupScene2() {
+      // desired orientation of autogiro
+      const sceneInfo = makeScene(document.querySelector('#desiredauto'));
+
+      const geometry = new THREE.BoxGeometry(2, 0.1, 0.1);
+      const material = new THREE.MeshPhongMaterial({color: 'black'});
+      const mainbar = new THREE.Mesh(geometry, material);
+      mainbar.position.set(0, 0.025, -0)
+
+      const geometry_wing = new THREE.BoxGeometry(0.6, 0.1, 0.6);
+      const material_wing = new THREE.MeshPhongMaterial({color: 'pink'});
+
+      const Wing1 = new THREE.Mesh(geometry_wing, material_wing); 
+      Wing1.position.set(1, 0.05, 0.3); 
+
+      const Wing2 = new THREE.Mesh(geometry_wing, material_wing); 
+      Wing2.rotateX(120*3.1415/180); 
+      Wing2.position.set(1, -0.26, -0.15); 
+
+      const Wing3 = new THREE.Mesh(geometry_wing, material_wing); 
+      Wing3.rotateX(-120*3.1415/180); 
+      Wing3.position.set(1, 0.26, -0.15); 
+
+      const geometry_srot = new THREE.BoxGeometry(0.8, 0.1, 0.1);
+      const material_srot = new THREE.MeshPhongMaterial({color: 'black'});
+      const soporte_rotor = new THREE.Mesh(geometry_srot, material_srot); 
+      soporte_rotor.rotateY(90*3.1415/180);
+      soporte_rotor.position.set(0, 0.05, -0.4)
+
+      const geometry_blade = new THREE.BoxGeometry(0.8, 0.1, 0.01);
+      const material_blade = new THREE.MeshPhongMaterial({color: 'blue'});
+
+      const blade1 = new THREE.Mesh(geometry_blade, material_blade);
+      blade1.position.set(0.4, 0.05, -0.8); 
+
+      const blade2 = new THREE.Mesh(geometry_blade, material_blade);
+      blade2.position.set(-0.24, -0.30, -0.8); 
+      blade2.rotateZ(-120*3.1415/180);
+
+      const blade3 = new THREE.Mesh(geometry_blade, material_blade);
+      blade3.position.set(-0.24, 0.35, -0.8); 
+      blade3.rotateZ(120*3.1415/180);
+
+      const autogiro_desired = new THREE.Group() ; 
+
+      autogiro_desired.add(mainbar); 
+      autogiro_desired.add(Wing1); 
+      autogiro_desired.add(Wing2); 
+      autogiro_desired.add(Wing3); 
+      autogiro_desired.add(soporte_rotor); 
+      autogiro_desired.add(blade1) ;
+      autogiro_desired.add(blade2) ;
+      autogiro_desired.add(blade3) ;
+
+      sceneInfo.scene.add(autogiro_desired);
+      sceneInfo.autogiro_desired = autogiro_desired;
+
+      return sceneInfo;
+    }
+
+    function setupScene3() {
+      // Gamepad scene
+      const sceneInfo = makeScene(document.querySelector('#buttons'));
+      const geometry = new THREE.BoxGeometry(3, 1.5, 0.1);
+      const material = new THREE.MeshPhongMaterial({color: 'green'});
+      const fondoVerde = new THREE.Mesh(geometry, material);
+      sceneInfo.scene.add(fondoVerde);
+      sceneInfo.fondoVerde = fondoVerde;
+
+      const geometry2 = new THREE.CircleGeometry(0.5, 50); 
+      const material2 = new THREE.MeshPhongMaterial({color: 'black'}); 
+      const fondoJoy = new THREE.Mesh(geometry2, material2); 
+      var vec = new THREE.Vector3(0.7, 0, 0.2);
+      fondoJoy.position.copy(vec); 
+      const fondoJoy2 = new THREE.Mesh(geometry2, material2); 
+      var vec2 = new THREE.Vector3(-0.7, 0, 0.2);
+      fondoJoy2.position.copy(vec2); 
+      sceneInfo.scene.add(fondoJoy); 
+      sceneInfo.scene.add(fondoJoy2); 
+      sceneInfo.fondoJoy = fondoJoy ; 
+      sceneInfo.fondoJoy = fondoJoy2 ; 
+
+      const geometry3 = new THREE.CircleGeometry(0.1, 50); 
+      const material3 = new THREE.MeshPhongMaterial({color: 'red'}); 
+      const buttonL = new THREE.Mesh(geometry3, material3); 
+      var vec3 = new THREE.Vector3(-0.7, 0, 0.21);
+      buttonL.position.copy(vec3); 
+      const buttonR = new THREE.Mesh(geometry3, material3); 
+      var vec4 = new THREE.Vector3(0.7, 0, 0.21);
+      buttonR.position.copy(vec4); 
+      sceneInfo.scene.add(buttonL); 
+      sceneInfo.scene.add(buttonR); 
+      sceneInfo.buttonL = buttonL ; 
+      sceneInfo.buttonR = buttonR ; 
+
+      return sceneInfo;
+    }
+  
+    const sceneInfo1 = setupScene1();
+    const sceneInfo2 = setupScene2();
+    const sceneInfo3 = setupScene3();
+  
+    function resizeRendererToDisplaySize(renderer) {
+      const canvas = renderer.domElement;
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      const needResize = canvas.width !== width || canvas.height !== height;
+      if (needResize) {
+        renderer.setSize(width, height, false);
+      }
+      return needResize;
+    }
+  
+    function renderSceneInfo(sceneInfo) {
+      const {scene, camera, elem} = sceneInfo;
+  
+      // get the viewport relative position of this element
+      const {left, right, top, bottom, width, height} =
+          elem.getBoundingClientRect();
+  
+      const isOffscreen =
+          bottom < 0 ||
+          top > renderer.domElement.clientHeight ||
+          right < 0 ||
+          left > renderer.domElement.clientWidth;
+  
+      if (isOffscreen) {
+        return;
+      }
+  
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+  
+      const positiveYUpBottom = renderer.domElement.clientHeight - bottom;
+      renderer.setScissor(left, positiveYUpBottom, width, height);
+      renderer.setViewport(left, positiveYUpBottom, width, height);
+  
+      renderer.render(scene, camera);
+    }
+  
+    function render(time) {
+
+      resizeRendererToDisplaySize(renderer);
+  
+      renderer.setScissorTest(false);
+      renderer.clear(true, true);
+      renderer.setScissorTest(true);
+  
+      renderSceneInfo(sceneInfo1);
+      renderSceneInfo(sceneInfo2);
+      renderSceneInfo(sceneInfo3);
+  
+      requestAnimationFrame(render);
+    }
+  
+    function WebSocketBegin() {
+     //let [scene, camera, cube] = [gamepad.scene, gamepad.camera, gamepad.mesh]; // Variables for visualization of gamepad orientation
+     //let [scene2, camera2, cube2] = [buttons.scene, buttons.camera, buttons.mesh] ; //Variables for visualization of buttons read
+  
+     const ws = new WebSocket('ws://localhost:8001/');
+     console.log("Hello!");
+  
+      ws.onopen = function() {
+      // Web Socket is connected
+     };
+  
+     ws.onerror = function (error) {
+       console.log('WebSocket Error ' + error);
+     };
+  
+     ws.onmessage = function(evt) {
+        //create a JSON object
+         var pi = 3.14159 ; 
+         var jsonObject = JSON.parse(evt.data);
+  
+         let quat1 = new THREE.Quaternion(jsonObject.QX, jsonObject.QY, jsonObject.QZ, jsonObject.QW);
+         let quat_desired = new THREE.Quaternion(jsonObject.dQX, jsonObject.dQY, jsonObject.dQZ, jsonObject.dQW);
+         //const Euler_current = new THREE.Euler( jsonObject.EulerX*pi/180, jsonObject.EulerY*pi/180, jsonObject.EulerZ*pi/180, 'XYZ' );
+  
+         var quat3 = new THREE.Quaternion(0, 0.7071068, 0, 0.7071068 ) ; // Rota 90deg sobre y
+         //var quat2 = new THREE.Quaternion(0.1564345, 0, 0, 0.9876883) ; // Rota 0.1 Rad sobre y
+         //var quat4 = new THREE.Quaternion( 0.3801884, 0, 0, 0.9249091); // Rota 0.1 Rad sobre y
+         //quat1.multiplyQuaternions(quat2, quat1);  // Remplaza el cuaternio 4 con el resultado
+                                                        // del producto especial de quaternios
+         
+         quat1.multiplyQuaternions(quat3, quat1);
+         quat_desired.multiplyQuaternions(quat3, quat_desired);
+          
+         //quat1.setFromEuler(Euler_current); 
+              
+        sceneInfo1.autogiro.quaternion.copy(quat1) ; 
+        sceneInfo2.autogiro_desired.quaternion.copy(quat_desired) ; 
+
+        var vecJoyR = new THREE.Vector3(0.7+jsonObject.Ry/8, jsonObject.Rx/8, 0.21+0*jsonObject.Rw);
+        sceneInfo3.buttonR.position.copy(vecJoyR); 
+        //console.log(jsonObject.Lw); 
+        if(jsonObject.Lw > 0.01){
+          var vecJoyL = new THREE.Vector3(-0.7+jsonObject.Ly/8, jsonObject.Lx/8, 0.2) ;
+        }else{
+          var vecJoyL = new THREE.Vector3(-0.7+jsonObject.Ly/8, jsonObject.Lx/8, 0.4*0.5) ;
+        }
+        
+        sceneInfo3.buttonL.position.copy(vecJoyL);
+        //console.log(quat_desired) ; 
+      };
+          
+  
+      ws.onclose = function() {
+       // websocket is closed.
+        alert("Connection is closed... brother");
+     }
+    }
+  
+    requestAnimationFrame(render);
+    WebSocketBegin() ; 
+  }
+  
+  main();
+      </script>
