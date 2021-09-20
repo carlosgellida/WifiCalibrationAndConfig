@@ -6,4 +6,9 @@ In order to load the geometries required, the three-module.js must be served, to
 
 (3) Run server at 8080 port with following command: "npm start"
 
-that's all
+
+To run the server with the graph interface of drone, follow next steps:
+
+(1) Using a terminal move to NodeJsCode folder
+
+(2) run the both html and websocket server with following column 'node Server.js'
