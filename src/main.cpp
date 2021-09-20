@@ -2,6 +2,9 @@
 #include <WiFi.h>
 #include <WebSocketsClient.h>
 #include <ArduinoJson.h>
+#include <BasicLinearAlgebra.h>
+
+using namespace BLA;
 
 /*char ssid[] = "IZZI-2124" ; 
 char pass[] = "ECA9404C2124" ;
@@ -23,7 +26,10 @@ struct Quaternion {
     float QZ; 
 }; 
 
-Quaternion desiredQuat; 
+Matrix<4, 1> CurrQuaternion, DesiQuaternion; 
+
+//Matrix<4, 1> DesiQuaternion ; 
+
 Quaternion currentQuat; 
 
 void printWifiData() {
@@ -87,7 +93,7 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
 			break;
 		case WStype_BIN:
 			//Serial.printf("[WSc] get binary length: %u\n", length);
-			hexdump(payload, length);
+			//hexdump(payload, length);
 
 			// send data to server
 			// webSocket.sendBIN(payload, length);
@@ -176,10 +182,10 @@ void getAndSendInfo()
   jsonDocTx.clear();
 
   //Almacenar info del quaternio en documento JSON
-  jsonDocTx["QW"] = currentQuat.QW ; 
-  jsonDocTx["QX"] = currentQuat.QX ; 
-  jsonDocTx["QY"] = currentQuat.QY ; 
-  jsonDocTx["QZ"] = currentQuat.QZ ; 
+  jsonDocTx["QW"] = CurrQuaternion(0) ; 
+  jsonDocTx["QX"] = CurrQuaternion(1) ; 
+  jsonDocTx["QY"] = CurrQuaternion(2) ; 
+  jsonDocTx["QZ"] = CurrQuaternion(3) ; 
 
   /*jsonDocTx["Lx"] = buttons.Lx ; // Agregar lectura de botones al archivo JSON
   jsonDocTx["Ly"] = buttons.Ly ; 
@@ -188,10 +194,10 @@ void getAndSendInfo()
   jsonDocTx["Ry"] = buttons.Ry ; 
   jsonDocTx["Rw"] = buttons.Rw ; */
 
-  jsonDocTx["dQW"] = desiredQuat.QW; 
-  jsonDocTx["dQX"] = desiredQuat.QX; 
-  jsonDocTx["dQY"] = desiredQuat.QY; 
-  jsonDocTx["dQZ"] = desiredQuat.QZ; 
+  jsonDocTx["dQW"] = DesiQuaternion(0) ; 
+  jsonDocTx["dQX"] = DesiQuaternion(1) ; 
+  jsonDocTx["dQY"] = DesiQuaternion(2) ; 
+  jsonDocTx["dQZ"] = DesiQuaternion(3) ; 
 
   //Convertir documento JSON en un string
   serializeJson(jsonDocTx, output);
@@ -217,7 +223,7 @@ void setup() {
 
 void loop() {
 
-  desiredQuat.QW = 1; 
+  /*desiredQuat.QW = 1; 
   desiredQuat.QX = 0; 
   desiredQuat.QY = 0; 
   desiredQuat.QZ = 0; 
@@ -225,7 +231,11 @@ void loop() {
   currentQuat.QW = 1; 
   currentQuat.QX = 0; 
   currentQuat.QY = 0; 
-  currentQuat.QZ = 0; 
+  currentQuat.QZ = 0; */
+
+  CurrQuaternion = {1, 0, 0, 0}; 
+
+  DesiQuaternion = {1, 0, 0, 0}; 
 
   webSocket.loop();
   getAndSendInfo() ; // Send all the info to the computer

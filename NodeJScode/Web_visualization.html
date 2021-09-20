@@ -98,7 +98,6 @@
   
   <script type="module">
       import * as THREE from 'http://localhost:8080/build/three.module.js';
-      //import * as THREE from 'http://localhost:8080/threejs/resources/threejs/r127/build/three.module.js';
       //import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r127/build/three.module.js';
   function main() {
     const canvas = document.querySelector('#c');
@@ -363,7 +362,9 @@
      ws.onmessage = function(evt) {
         //create a JSON object
          var pi = 3.14159 ; 
-         var jsonObject = JSON.parse(evt.data);
+
+         var string1 = JSON.stringify(evt.data);
+         var jsonObject = JSON.parse(string1);
   
          let quat1 = new THREE.Quaternion(jsonObject.QX, jsonObject.QY, jsonObject.QZ, jsonObject.QW);
          let quat_desired = new THREE.Quaternion(jsonObject.dQX, jsonObject.dQY, jsonObject.dQZ, jsonObject.dQW);
@@ -393,7 +394,7 @@
         }
         
         sceneInfo3.buttonL.position.copy(vecJoyL);
-        //console.log(quat_desired) ; 
+        console.log(quat_desired) ; 
       };
           
   
