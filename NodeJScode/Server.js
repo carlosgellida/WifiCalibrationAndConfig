@@ -33,7 +33,7 @@ console.log('Node.js web server at port 5000 is running..')
 wss.on('connection', function connection(ws) {
   
     ws.on('message', function incoming(message) {
-      console.log('received: %s', message);
+      //console.log('received: %s', message);
       ws.send(message);
     });
   
