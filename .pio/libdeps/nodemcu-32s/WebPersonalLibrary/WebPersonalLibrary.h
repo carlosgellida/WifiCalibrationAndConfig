@@ -117,12 +117,47 @@ void foundIP(void){
   Serial.println("Websocket has begin"); 
 }
 
-void taskWifiInternet(void) {
+
+void foundIP2(void){
+  // Esta función busca el servidor cuando se está conectando al PC utilizando ESP32 como acces point
+
+  IPAddress server(192, 168, 4, 2); 
+  String iPdelPC = ""; 
+  int i = 4; 
+  while(true){
+    bool connectedServer = false; 
+    for(int j=2; j < 5; j++){
+      iPdelPC = "192.168." + String(i) + "." + String(j) ; 
+      server[2] = i; 
+      server[3] = j; 
+      if (client.connect(server, 5000)) {
+        Serial.print("IP of PC: "); 
+        Serial.println(server); 
+        Serial.println("connected to server");
+        connectedServer = true; 
+        break;
+      }
+      Serial.println("Please wait, looking for the PC IP");
+      delay(10) ; 
+    }
+    if(connectedServer){
+        break; 
+    }
+  }
+
+  webSocket.begin(server, 8001, "/"); 
+  
+  webSocket.onEvent(webSocketEvent) ;
+  webSocket.setReconnectInterval(50); 
+
+  Serial.println("Websocket has begin"); 
+}
+
+
+void taskWifiWithModem(void) {
   // Esta función inicia la conexión WIFI, y se conecta a un 
   // servidor Web Socket, esta función hace uso de un modem
 
-  //char ssid[] = "IZZI-2124" ; 
-  //char pass[] = "ECA9404C2124" ;
   int status = WL_IDLE_STATUS;     // the Wifi radio's status
   //int WL_CONNECTED = 0; 
 
@@ -143,6 +178,25 @@ void taskWifiInternet(void) {
   delay(2000) ; 
 
   foundIP(); 
+}
+
+
+void taskWifiNoModem(void) {
+  // Esta función inicia la conexión WIFI, y se conecta a un 
+  // servidor Web Socket, esta función No hace uso de un modem
+
+  // Connect to Wi-Fi network with SSID and password
+  Serial.print("Setting AP (Access Point)…");
+  // Remove the password parameter, if you want the AP (Access Point) to be open
+  WiFi.softAP(ssid2, password2);
+
+  IPAddress IP = WiFi.softAPIP();
+  Serial.print("AP IP address: ");
+  Serial.println(IP);
+
+  delay(2000) ; 
+
+  foundIP2(); 
 }
 
 
